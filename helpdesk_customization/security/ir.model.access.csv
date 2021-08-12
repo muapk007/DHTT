@@ -11,6 +11,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 10,site.line,model_site_line,base.group_user,1,1,1,1
 11,wireless.line,model_wireless_line,base.group_user,1,1,1,1
 12,site.type,model_site_type,base.group_user,1,1,1,1
+13,contact.name,model_contact_name,base.group_user,1,1,1,1
 
 
 

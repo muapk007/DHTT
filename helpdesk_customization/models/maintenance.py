@@ -7,19 +7,35 @@ from odoo import models, fields, api, _
 class MaintenanceEquipmentInherit(models.Model):
     _inherit = 'maintenance.equipment'
 
-    cctv_installed = fields.Many2one('product.product')
+    cctv_installed = fields.Many2many('product.product', 'taxes_id', 'uom_id')
     ptz_camera = fields.Many2one('product.product')
     contractor_name = fields.Many2one('res.partner')
-    site_contactor = fields.Many2one('res.partner')
-    no_of_ptz = fields.Many2one('product.product')
+    site_contactor = fields.Many2one('contact.name')
+    no_of_ptz = fields.Many2many('product.product', 'tic_category_id', 'uom_po_id')
     cctv_camera = fields.Many2one('product.product')
     ptz_contactor_name = fields.Many2one('res.partner')
-    ptz_site_name = fields.Many2one('res.partner')
-    no_of_fibre = fields.Many2one('product.product')
+    ptz_site_name = fields.Many2one('contact.name')
+    no_of_fibre = fields.Many2many('product.product', 'default_code', 'categ_id')
     fibre_info = fields.Many2one('product.product')
     fibre_contractor_name = fields.Many2one('res.partner')
-    fibre_site_name = fields.Many2one('product.product')
+    fibre_site_name = fields.Many2one('contact.name')
     ip_address = fields.Char('IP Address')
+
+    product_ids = fields.Many2many('product.product', 'currency_id', 'activity_type_id', compute='compute_products_added')
+
+    def compute_products_added(self):
+        requests = self.env['maintenance.request'].search([('equipment_id', '=', self.id)])
+        tickets = self.env['helpdesk.ticket'].search([('site_id', '=', self.id)])
+        product_list = []
+        for request in requests:
+            for request_line in request.part_ids:
+                if request_line.type == 'add':
+                    product_list.append(request_line.product_id.id)
+        for ticket in tickets:
+            for ticket_line in ticket.part_ids:
+                if ticket_line.type == 'add':
+                    product_list.append(ticket_line.product_id.id)
+        self.product_ids = product_list
 
     is_pole = fields.Boolean('Pole & Pole Foundation')
     is_outdoor = fields.Boolean('Outdoor Closures')
@@ -45,9 +61,9 @@ class MaintenanceEquipmentInherit(models.Model):
     site_code = fields.Char('Site Code')
     site_no = fields.Char('Site Number')
     site_assigned_to = fields.Date('Site Assigned To Date')
-    region = fields.Char('Region')
-    location = fields.Char('Location')
-    city = fields.Char('City')
+    # region = fields.Char('Region')
+    # location = fields.Char('Location')
+    # city = fields.Char('City')
     latitude = fields.Float('Latitude')
     longitude = fields.Float('longitude')
 
@@ -60,11 +76,6 @@ class MaintenanceEquipmentInherit(models.Model):
     camera_pic = fields.Many2many('ir.attachment', 'res_name',)
     site_pic = fields.Many2many('ir.attachment', 'public',)
     wireless_pic = fields.Many2many('ir.attachment', 'type',)
-
-    # attachment_ids = fields.Many2many('ir.attachment', 'email_template_attachment_rel', 'email_template_id',
-    #                                   'attachment_id', 'Attachments',
-    #                                   help="You may attach files to this template, to be added to all "
-    #                                        "emails created from this template")
 
     pole_comment = fields.Text('Comments')
     outdoor_comment = fields.Text('Comments')
@@ -212,6 +223,16 @@ class Pole(models.Model):
     is_not_ok = fields.Boolean('Not Ok')
     remarks = fields.Char('Remarks')
 
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
+
 
 class OutDoor(models.Model):
     _name = 'outdoor.line'
@@ -221,6 +242,16 @@ class OutDoor(models.Model):
     is_ok = fields.Boolean('Ok')
     is_not_ok = fields.Boolean('Not Ok')
     remarks = fields.Char('Remarks')
+
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
 
 
 class Battery(models.Model):
@@ -232,6 +263,16 @@ class Battery(models.Model):
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
 
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
+
 
 class Civil(models.Model):
     _name = 'civil.line'
@@ -242,6 +283,17 @@ class Civil(models.Model):
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
 
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
+
+
 class Fibre(models.Model):
     _name = 'fibre.line'
 
@@ -250,6 +302,16 @@ class Fibre(models.Model):
     is_not_ok = fields.Boolean('Not Ok')
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
+
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
 
 
 class Attenuation(models.Model):
@@ -261,6 +323,16 @@ class Attenuation(models.Model):
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
 
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
+
 class Camera(models.Model):
     _name = 'camera.line'
 
@@ -269,6 +341,17 @@ class Camera(models.Model):
     is_not_ok = fields.Boolean('Not Ok')
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
+
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
+
 
 class Site(models.Model):
     _name = 'site.line'
@@ -279,6 +362,16 @@ class Site(models.Model):
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
 
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False
+
 class Wireless(models.Model):
     _name = 'wireless.line'
 
@@ -287,3 +380,13 @@ class Wireless(models.Model):
     is_not_ok = fields.Boolean('Not Ok')
     remarks = fields.Char('Remarks')
     site_id = fields.Many2one('maintenance.equipment')
+
+    @api.onchange('is_ok')
+    def onchange_is_ok(self):
+        if self.is_ok:
+            self.is_not_ok = False
+
+    @api.onchange('is_not_ok')
+    def onchange_is_not_ok(self):
+        if self.is_not_ok:
+            self.is_ok = False

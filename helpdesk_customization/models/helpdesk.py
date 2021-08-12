@@ -2,7 +2,7 @@
 
 
 import datetime
-from odoo import models, fields
+from odoo import models, fields, api
 from datetime import datetime
 
 
@@ -24,18 +24,18 @@ class HelpDeskInh(models.Model):
     location_id = fields.Many2one('stock.location', required=True)
     location_dest_id = fields.Many2one('stock.location', required=True)
 
-    cctv_installed = fields.Many2one('product.product', related='site_id.cctv_installed')
+    cctv_installed = fields.Many2many('product.product', 'name', 'uom_id',related='site_id.cctv_installed')
     ptz_camera = fields.Many2one('product.product', related='site_id.ptz_camera')
     contractor_name = fields.Many2one('res.partner', related='site_id.contractor_name')
-    site_contactor = fields.Many2one('res.partner', related='site_id.site_contactor')
-    no_of_ptz = fields.Many2one('product.product', related='site_id.no_of_ptz')
+    site_contactor = fields.Many2one('contact.name', related='site_id.site_contactor')
+    no_of_ptz = fields.Many2many('product.product', 'type', 'barcode',related='site_id.no_of_ptz')
     cctv_camera = fields.Many2one('product.product', related='site_id.cctv_camera')
     ptz_contactor_name = fields.Many2one('res.partner', related='site_id.ptz_contactor_name')
-    ptz_site_name = fields.Many2one('res.partner', related='site_id.ptz_site_name')
-    no_of_fibre = fields.Many2one('product.product', related='site_id.no_of_fibre')
+    ptz_site_name = fields.Many2one('contact.name', related='site_id.ptz_site_name')
+    no_of_fibre = fields.Many2many('product.product', 'default_code', 'categ_id' ,related='site_id.no_of_fibre')
     fibre_info = fields.Many2one('product.product', related='site_id.fibre_info')
     fibre_contractor_name = fields.Many2one('res.partner', related='site_id.fibre_contractor_name')
-    fibre_site_name = fields.Many2one('product.product', related='site_id.fibre_site_name')
+    fibre_site_name = fields.Many2one('contact.name', related='site_id.fibre_site_name')
     ip_address = fields.Char('IP Address', related='site_id.ip_address')
 
     is_pole = fields.Boolean('Pole & Pole Foundation', related='site_id.is_pole')
@@ -156,6 +156,7 @@ class HelpDeskPartsLine(models.Model):
     _name = 'helpdesk.parts.line'
 
     ticket_id = fields.Many2one('helpdesk.ticket')
+    request_id = fields.Many2one('maintenance.request')
     type = fields.Selection([('add', 'Add'),
                                 ('remove', 'Remove')], string='Type', required=True)
     product_id = fields.Many2one('product.product', required=True)
@@ -169,6 +170,22 @@ class HelpDeskPartsLine(models.Model):
     receive_qty = fields.Float(compute='compute_qty_done')
     delivered_qty = fields.Float(compute='compute_qty_done')
     is_picking_created = fields.Boolean()
+
+    product_ids = fields.Many2many('product.product', 'currency_id', 'activity_type_id',
+                                   compute='compute_products_added')
+
+    @api.depends('type')
+    def compute_products_added(self):
+        for rec in self:
+            product_list = []
+            products = self.env['product.product'].search([])
+            if rec.type == 'remove':
+                if rec.request_id:
+                    rec.product_ids = rec.request_id.equipment_id.product_ids.ids
+                if rec.ticket_id:
+                    rec.product_ids = rec.ticket_id.site_id.product_ids.ids
+            else:
+                rec.product_ids = products.ids
 
     def compute_qty_done(self):
         for rec in self:

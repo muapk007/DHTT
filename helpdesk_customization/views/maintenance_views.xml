@@ -48,9 +48,9 @@
             </xpath>
             <xpath expr="//field[@name='category_id']" position="after">
                 <field name="site_code"/>
-                <field name="region"/>
-                <field name="location"/>
-                <field name="city"/>
+<!--                <field name="region"/>-->
+<!--                <field name="location"/>-->
+<!--                <field name="city"/>-->
                 <field name="longitude"/>
                 <field name="latitude"/>
             </xpath>
@@ -81,27 +81,32 @@
                         <field name="is_wireless"/>
                     </group>
                 </page>
+                <page string="Parts">
+                    <group>
+                        <field name="product_ids" widget="many2many_tags"/>
+                    </group>
+                </page>
             </xpath>
 
             <xpath expr="//page[@name='maintenance']" position="after">
                 <page string="Material Installed">
                     <group col="2">
                         <group string="CCTV">
-                            <field name="cctv_installed"/>
+                            <field name="cctv_installed" widget="many2many_tags"/>
                             <field name="ptz_camera"/>
                             <field name="contractor_name"/>
                             <field name="site_contactor"/>
                         </group>
 
                         <group string="PTZ Camera">
-                            <field name="no_of_ptz"/>
+                            <field name="no_of_ptz" widget="many2many_tags"/>
                             <field name="cctv_camera"/>
                             <field name="ptz_contactor_name"/>
                             <field name="ptz_site_name"/>
                         </group>
 
                         <group string="Fibre Assignment">
-                            <field name="no_of_fibre"/>
+                            <field name="no_of_fibre" widget="many2many_tags"/>
                             <field name="fibre_info"/>
                             <field name="fibre_contractor_name"/>
                             <field name="fibre_site_name"/>

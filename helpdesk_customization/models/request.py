@@ -7,23 +7,23 @@ from datetime import datetime
 class MaintenanceRequestInh(models.Model):
     _inherit = 'maintenance.request'
 
-    part_ids = fields.One2many('helpdesk.parts.line', 'ticket_id')
+    part_ids = fields.One2many('helpdesk.parts.line', 'request_id')
     ticket_ids = fields.Many2many('helpdesk.ticket.type')
     location_id = fields.Many2one('stock.location', required=True)
     location_dest_id = fields.Many2one('stock.location', required=True)
 
-    cctv_installed = fields.Many2one('product.product', related='equipment_id.cctv_installed')
+    cctv_installed = fields.Many2many('product.product', 'name', 'uom_id',related='equipment_id.cctv_installed')
     ptz_camera = fields.Many2one('product.product', related='equipment_id.ptz_camera')
     contractor_name = fields.Many2one('res.partner', related='equipment_id.contractor_name')
-    site_contactor = fields.Many2one('res.partner', related='equipment_id.site_contactor')
-    no_of_ptz = fields.Many2one('product.product', related='equipment_id.no_of_ptz')
+    site_contactor = fields.Many2one('contact.name', related='equipment_id.site_contactor')
+    no_of_ptz = fields.Many2many('product.product', 'type','barcode',related='equipment_id.no_of_ptz')
     cctv_camera = fields.Many2one('product.product', related='equipment_id.cctv_camera')
     ptz_contactor_name = fields.Many2one('res.partner', related='equipment_id.ptz_contactor_name')
-    ptz_site_name = fields.Many2one('res.partner', related='equipment_id.ptz_site_name')
-    no_of_fibre = fields.Many2one('product.product', related='equipment_id.no_of_fibre')
+    ptz_site_name = fields.Many2one('contact.name', related='equipment_id.ptz_site_name')
+    no_of_fibre = fields.Many2many('product.product', 'default_code', 'categ_id',related='equipment_id.no_of_fibre')
     fibre_info = fields.Many2one('product.product', related='equipment_id.fibre_info')
     fibre_contractor_name = fields.Many2one('res.partner', related='equipment_id.fibre_contractor_name')
-    fibre_site_name = fields.Many2one('product.product', related='equipment_id.fibre_site_name')
+    fibre_site_name = fields.Many2one('contact.name', related='equipment_id.fibre_site_name')
     ip_address = fields.Char('IP Address', related='equipment_id.ip_address')
 
     is_pole = fields.Boolean('Pole & Pole Foundation', related='equipment_id.is_pole')
@@ -36,7 +36,6 @@ class MaintenanceRequestInh(models.Model):
     is_site = fields.Boolean('Site Power', related='equipment_id.is_site')
     is_wireless = fields.Boolean('Wireless System', related='equipment_id.is_wireless')
 
-
     pole_lines = fields.One2many('pole.line', 'site_id', related='equipment_id.pole_lines')
     outdoor_lines = fields.One2many('outdoor.line', 'site_id', related='equipment_id.outdoor_lines')
     battery_lines = fields.One2many('battery.line', 'site_id', related='equipment_id.battery_lines')
@@ -46,16 +45,6 @@ class MaintenanceRequestInh(models.Model):
     camera_lines = fields.One2many('camera.line', 'site_id', related='equipment_id.camera_lines')
     site_lines = fields.One2many('site.line', 'site_id', related='equipment_id.site_lines')
     wireless_lines = fields.One2many('wireless.line', 'site_id', related='equipment_id.wireless_lines')
-
-    # pole_pic = fields.Binary('Attach Picture', related='equipment_id.pole_pic')
-    # outdoor_pic = fields.Binary('Attach Picture', related='equipment_id.outdoor_pic')
-    # battery_pic = fields.Binary('Attach Picture', related='equipment_id.battery_pic')
-    # civil_pic = fields.Binary('Attach Picture', related='equipment_id.civil_pic')
-    # fibre_pic = fields.Binary('Attach Picture', related='equipment_id.fibre_pic')
-    # attenuation_pic = fields.Binary('Attach Picture', related='equipment_id.attenuation_pic')
-    # camera_pic = fields.Binary('Attach Picture', related='equipment_id.camera_pic')
-    # site_pic = fields.Binary('Attach Picture', related='equipment_id.site_pic')
-    # wireless_pic = fields.Binary('Attach Picture', related='equipment_id.wireless_pic')
 
     pole_pic = fields.Many2many('ir.attachment', 'res_model', related='equipment_id.pole_pic')
     outdoor_pic = fields.Many2many('ir.attachment', 'file_size', related='equipment_id.outdoor_pic')
